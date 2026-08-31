@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#3f7567">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="日程清单">
+  <meta name="description" content="像备忘录一样快速记录、查看并同步日程。">
+  <meta property="og:title" content="日程清单">
+  <meta property="og:description" content="跨平台云同步日程清单。">
+  <meta property="og:image" content="https://checkmatedesi-ui.github.io/schedule-notes-mobile/og.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <title>日程清单</title>
+  <style>
+    :root{--bg:#f5f7f6;--panel:#fff;--text:#202522;--muted:#737b76;--line:#e5e9e6;--accent:#3f7567;--accent2:#edf5f2;--danger:#a24c4c;--shadow:0 12px 36px rgba(29,45,38,.07)}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}.hidden{display:none!important}
+    .center-page{min-height:100vh;display:grid;place-items:center;padding:28px}.gate{width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow)}.gate h1{font-size:26px;margin:0 0 8px}.gate h2{font-size:18px;margin:24px 0 10px}.gate p,.hint{color:var(--muted);font-size:14px;line-height:1.7}.publisher-note{padding:13px 15px;border-radius:10px;background:var(--accent2);color:var(--accent);font-size:13px;line-height:1.65;margin:16px 0}.setup-step{padding:15px 0;border-top:1px solid var(--line)}.setup-step h2{margin:0 0 6px;font-size:16px}.setup-step p{margin:0 0 10px}.step-no{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;margin-right:7px;background:var(--accent);color:#fff;font-size:12px}.field{display:grid;gap:7px;margin:14px 0;color:#5f6762;font-size:13px}.field input,.field select,.field textarea,.search{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);outline:0;padding:10px 12px}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:#96b6ab;box-shadow:0 0 0 3px rgba(63,117,103,.1)}.field textarea{resize:vertical;min-height:80px}.sql{min-height:210px!important;font:12px/1.55 Consolas,monospace;background:#f7f9f8!important}details{margin-top:10px}summary{cursor:pointer;color:var(--muted);font-size:13px}.row{display:flex;align-items:center;gap:10px}.row>*{min-width:0}.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid var(--line);border-radius:9px;background:#fff;color:#454d48;padding:10px 14px}.btn:hover{background:#f7f9f8}.btn.primary{border-color:var(--accent);background:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(.95)}.btn.danger{color:var(--danger)}.full{width:100%}.gate-link{border:0;background:none;color:var(--accent);padding:4px}.message{min-height:21px;margin:10px 0 0;color:var(--danger);font-size:13px}.auth-switch{justify-content:space-between;margin-top:16px;color:var(--muted);font-size:13px}
+    .shell{min-height:100vh;display:grid;grid-template-columns:230px 1fr}.sidebar{position:sticky;top:0;height:100vh;padding:26px 18px;border-right:1px solid var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(12px);display:flex;flex-direction:column}.brand{font-size:21px;font-weight:700;letter-spacing:-.04em;padding:0 10px 24px}.nav{display:grid;gap:5px}.nav-btn{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;border-radius:9px;background:transparent;color:#5a625d;padding:10px 12px;text-align:left}.nav-btn:hover{background:#f1f4f2}.nav-btn.active{background:var(--accent2);color:var(--accent);font-weight:600}.badge{min-width:24px;text-align:center;font-size:12px;color:#87908a}.sidebar-foot{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--line)}.account{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted);margin-bottom:10px}.sync-state{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:10px}.sync-dot{width:7px;height:7px;border-radius:50%;background:#7eaa91}.sync-dot.offline{background:#c78d62}
+    .main{min-width:0;padding:32px clamp(20px,4vw,56px) 70px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}.topbar h1{margin:0;font-size:28px;letter-spacing:-.04em}.top-actions{display:flex;align-items:center;gap:10px}.search{width:min(280px,32vw);height:40px}.icon-btn{width:40px;height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#65706a}.icon-btn:hover{background:#f8faf9}.overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:24px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px}.stat-label{font-size:12px;color:var(--muted)}.stat-value{font-size:25px;font-weight:680;margin-top:5px}.content-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 5px 20px rgba(29,45,38,.035)}.content-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.content-head h2{font-size:17px;margin:0}.subtle{font-size:12px;color:var(--muted)}.task-groups{display:grid;gap:22px}.group-title{font-size:13px;font-weight:600;color:#69726c;margin:0 0 9px;padding-left:3px}.task-list{display:grid;gap:8px}.task{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:11px;padding:13px;background:#fff;transition:.15s}.task:hover{border-color:#d6ddd8;box-shadow:0 5px 16px rgba(36,50,44,.05)}.task-main{min-width:0}.task-title{font-size:15px;line-height:1.45;overflow-wrap:anywhere}.task.done .task-title{text-decoration:line-through;color:#929993}.task-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px;color:var(--muted);font-size:12px}.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:99px;background:#f2f4f3}.priority{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:2px}.p0{background:#9aa49e}.p1{background:#cb9750}.p2{background:#bf6262}.task-notes{margin-top:8px;color:#737b76;font-size:13px;line-height:1.55;white-space:pre-wrap}.task-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}.mini{border:0;border-radius:7px;background:transparent;color:#778079;padding:6px 8px;font-size:12px;white-space:nowrap}.mini:hover{background:#f1f4f2;color:#3f4943}.mini.complete{border:1px solid #b9d0c8;background:#edf5f2;color:var(--accent);padding:5px 9px}.mini.complete:hover{background:#dfeee9}.task.done .mini.complete{border-color:var(--line);background:#fff;color:#737b76}.mini.delete:hover{background:#faeeee;color:var(--danger)}.empty{padding:44px 15px;border:1px dashed #dce2de;border-radius:11px;text-align:center;color:var(--muted);font-size:14px}
+    .priority-chip{border:1px solid transparent;font-weight:600;padding:3px 8px}.priority-chip.level0{border-color:#cfdbd5;background:#edf3f0;color:#526c61}.priority-chip.level1{border-color:#ead6b6;background:#fbf3e7;color:#86602f}.priority-chip.level2{border-color:#e7c0c0;background:#faeeee;color:#914b4b}.priority-chip .priority{width:8px;height:8px;margin-right:3px}.admin-panel{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:-8px 0 22px;padding:13px 15px;border:1px solid #cfe0da;border-radius:11px;background:var(--accent2)}.admin-copy{min-width:0}.admin-title{display:flex;align-items:center;gap:8px;color:#315f53;font-size:13px;font-weight:650}.admin-badge{display:inline-flex;align-items:center;border-radius:99px;background:#d9ebe5;color:#315f53;padding:3px 8px;font-size:11px}.admin-note{margin-top:3px;color:#64766f;font-size:12px}.owner-picker{display:flex;align-items:center;gap:8px;color:#52645d;font-size:12px;white-space:nowrap}.owner-picker select{min-width:190px;border:1px solid #b9d0c8;border-radius:8px;background:#fff;color:var(--text);padding:8px 10px}.owner-chip{background:#eef1f0;color:#5f6963}.read-only-label{align-self:center;color:#7b8580;font-size:12px}
+    .time-picker{display:grid;grid-template-columns:24px minmax(72px,1fr) auto minmax(72px,1fr) 34px;align-items:center;gap:6px;width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:9px;background:#fff;transition:.15s}.time-picker:focus-within{border-color:#96b6ab;box-shadow:0 0 0 3px rgba(63,117,103,.1)}.time-icon{color:var(--accent);font-size:18px;text-align:center}.field .time-picker select{width:100%;border:0;border-radius:7px;background:#f3f6f4;padding:7px 9px;text-align:center;box-shadow:none;font-weight:600;color:#46534c}.time-colon{font-size:18px;font-weight:700;color:#7e8781}.time-clear{width:32px;height:32px;border:0;border-radius:7px;background:transparent;color:#89918c}.time-clear:hover{background:#f0f3f1;color:#4e5953}
+    .calendar-head{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px}.calendar-title{min-width:130px;text-align:center;font-size:17px;font-weight:620}.today-jump{padding:9px 12px;color:var(--accent);border-color:#b9d0c8;background:var(--accent2)}.today-jump:hover{background:#dfeee9}.calendar-scroll{overflow-x:auto;border-bottom:1px solid var(--line)}.calendar-inner{min-width:760px}.weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}.weekdays div{text-align:center;color:var(--muted);font-size:12px;padding:8px}.day{min-height:122px;border-top:1px solid var(--line);border-right:1px solid var(--line);background:#fff;padding:7px;text-align:left;color:var(--text);cursor:pointer;overflow:hidden}.day:nth-child(7n){border-right:0}.day:hover{background:#f7faf8}.day.selected{background:#f0f6f3;box-shadow:inset 0 0 0 1px #a9c6bc}.day.muted{color:#b1b7b3;background:#fbfcfb}.day.today .day-num{background:var(--accent);color:#fff}.day-num{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;font-size:12px}.day-events{display:grid;gap:3px;margin-top:5px}.cal-event{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px;align-items:center;border-radius:5px;padding:3px 5px;background:#edf4f2;color:#42665c;font-size:10px;line-height:1.25}.cal-event.p1{background:#faf2e6;color:#8a622f}.cal-event.p2{background:#f9ecec;color:#964e4e}.cal-event.done{opacity:.58;text-decoration:line-through}.cal-time{font-variant-numeric:tabular-nums}.cal-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cal-more{color:var(--muted);font-size:10px;padding-left:4px}.timeline-panel{margin-top:24px;border-top:1px solid var(--line);padding-top:20px}.timeline-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.timeline-head h3{margin:0;font-size:17px}.timeline-hint{margin:0 0 12px;color:var(--muted);font-size:12px}.untimed{display:grid;gap:6px;margin-bottom:12px}.untimed-item{border-left:3px solid #9bb8ae;border-radius:6px;background:#f3f7f5;padding:8px 10px;font-size:12px}.timeline-scroll{height:min(62vh,680px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}.timeline-canvas{position:relative;height:2160px;min-width:520px;background:repeating-linear-gradient(to bottom,#fff 0,#fff 89px,#e8ece9 89px,#e8ece9 90px)}.hour-label{position:absolute;left:10px;width:48px;transform:translateY(-7px);color:#8a928d;font-size:11px;text-align:right}.timeline-axis{position:absolute;top:0;bottom:0;left:68px;border-left:1px solid #dce2de}.timeline-events{position:absolute;inset:0 10px 0 76px}.time-block{position:absolute;border:1px solid #bfd4cd;border-left:4px solid #5f9586;border-radius:7px;background:#eaf4f1;color:#315a4f;padding:5px 7px;overflow:hidden;text-align:left;box-shadow:0 2px 7px rgba(32,55,45,.07)}.time-block.p1{border-color:#ead5b6;border-left-color:#c58b3f;background:#fbf3e8;color:#795628}.time-block.p2{border-color:#e6bebe;border-left-color:#bd5c5c;background:#faeeee;color:#834545}.time-block.done{opacity:.58}.time-block-title{font-size:12px;font-weight:620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-block-time{font-size:10px;margin-top:2px;white-space:nowrap}.time-block.compact{display:flex;align-items:center;padding:1px 6px}.time-block.compact .time-block-title{font-size:10px}.time-block.compact .time-block-time{display:none}.timeline-empty{padding:18px;border-radius:9px;background:#f7f9f8;color:var(--muted);font-size:13px;text-align:center}
+    dialog{width:min(520px,calc(100% - 28px));border:1px solid var(--line);border-radius:16px;padding:0;box-shadow:0 22px 70px rgba(25,35,30,.2)}dialog::backdrop{background:rgba(27,35,31,.28);backdrop-filter:blur(2px)}.dialog-body{padding:23px}.dialog-head{display:flex;justify-content:space-between;align-items:center}.dialog-head h2{font-size:20px;margin:0}.close{border:0;background:none;color:var(--muted);font-size:23px;padding:2px 6px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.span2{grid-column:1/-1}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.toast{position:fixed;left:50%;bottom:28px;z-index:20;max-width:calc(100% - 32px);padding:11px 17px;border:1px solid #dce3df;border-radius:10px;background:rgba(255,255,255,.97);box-shadow:0 12px 38px rgba(27,40,34,.15);color:#53625a;font-size:13px;opacity:0;pointer-events:none;transform:translate(-50%,10px);transition:.22s}.toast.show{opacity:1;transform:translate(-50%,0)}.easter-trigger{position:fixed;right:0;bottom:0;width:54px;height:54px;border:0;background:transparent;opacity:0;z-index:30}.loading{opacity:.55;pointer-events:none}.ios-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:40;width:min(440px,calc(100% - 24px));transform:translateX(-50%);display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:11px;padding:12px 12px 12px 14px;border:1px solid #c7d9d3;border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 16px 45px rgba(25,45,36,.16);backdrop-filter:blur(14px)}.ios-install-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--accent);color:#fff;font-size:21px}.ios-install strong{display:block;font-size:13px}.ios-install span{display:block;margin-top:2px;color:var(--muted);font-size:11px;line-height:1.45}.ios-install button{border:0;background:transparent;color:#78817c;padding:8px;font-size:20px}.ios-share{font-weight:700;color:var(--accent)}@media(display-mode:standalone){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}.ios-install{display:none!important}}
+    @media(max-width:850px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;padding:14px 14px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:3px 7px 12px}.nav{display:flex;overflow-x:auto;gap:5px;padding-bottom:3px}.nav-btn{width:auto;flex:0 0 auto;padding:8px 11px}.nav-btn .badge{display:none}.sidebar-foot{display:flex;align-items:center;gap:10px;margin-top:9px;padding:9px 7px 0}.sidebar-foot .account{flex:1;margin:0}.sidebar-foot .sync-state{display:none}.sidebar-foot .row{gap:7px}.sidebar-foot .btn{padding:7px 10px;font-size:12px}.main{padding:24px 16px 70px}.topbar{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}.search{width:190px}.overview{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:560px){.gate{padding:21px}.topbar{display:grid}.top-actions{justify-content:stretch}.search{width:100%;order:3;flex-basis:100%}.top-actions .primary{flex:1}.admin-panel{align-items:stretch;flex-direction:column}.owner-picker{align-items:stretch;flex-direction:column}.owner-picker select{width:100%;min-width:0}.overview{gap:7px}.stat{padding:12px}.stat-value{font-size:21px}.content-card{padding:14px}.task{grid-template-columns:1fr}.task-actions{grid-column:1;justify-content:flex-end}.calendar-inner{min-width:700px}.day{min-height:112px;padding:5px}.cal-event{font-size:9px}.form-grid{grid-template-columns:1fr}.span2{grid-column:auto}.timeline-head{align-items:flex-start}.timeline-scroll{height:560px}}
+  </style>
+</head>
+<body>
+  <aside id="ios-install-tip" class="ios-install hidden" aria-label="添加到 iPhone 主屏幕"><span class="ios-install-icon" aria-hidden="true">▣</span><div><strong>放到 iPhone 桌面</strong><span>请用 Safari 打开，点击<span class="ios-share">分享</span> →“添加到主屏幕”。</span></div><button id="ios-install-close" type="button" aria-label="关闭提示">×</button></aside>
+  <section id="setup-page" class="center-page hidden">
+    <div class="gate">
+      <h1>制作可直接分享的日程工具</h1>
+      <p>这页只需要发布者设置一次。生成分享版后，朋友打开只需注册或登录，不会看到任何技术配置。</p>
+      <div class="publisher-note">普通使用者不需要 Supabase，也不需要运行代码。下面三步只由你完成一次。</div>
+      <div class="setup-step"><h2><span class="step-no">1</span>创建免费云空间</h2><p>点击按钮，在 Supabase 注册并新建一个项目。项目名称可以随意填写。</p><a class="btn" href="https://supabase.com/dashboard" target="_blank" rel="noopener">打开 Supabase</a></div>
+      <div class="setup-step"><h2><span class="step-no">2</span>准备日程数据表</h2><p>填写你已验证的登录邮箱。这个邮箱会加入管理员白名单，可以只读查看所有成员的日程。</p><label class="field">管理员登录邮箱<input id="admin-email" type="email" autocomplete="email" placeholder="name@example.com"></label><p>在 Supabase 左侧打开 SQL Editor，点击 New query，粘贴代码并点击 Run。旧版本升级时也重新运行一次，不会删除已有日程。</p><button id="copy-sql" class="btn" type="button">一键复制所需代码</button><details><summary>需要时查看代码</summary><label class="field">建表及升级代码<textarea id="schema-sql" class="sql" readonly=""></textarea></label></details></div>
+      <div class="setup-step"><h2><span class="step-no">3</span>生成给朋友的版本</h2><p>在 Supabase 的 Project Settings → API 页面复制下面两项。不要填写 service_role。</p><label class="field">Project URL<input id="config-url" type="url" placeholder="粘贴 Project URL"></label><label class="field">Publishable / anon key<input id="config-key" type="password" placeholder="粘贴 Publishable 或 anon key"></label><div class="row"><button id="export-app" class="btn primary" type="button">生成分享版 HTML</button><button id="save-config" class="btn" type="button">先自己试用</button></div></div>
+      <p class="hint">生成的文件名是“日程清单-分享版.html”。把这一个文件发给朋友即可；朋友无需重复以上步骤。</p>
+      <div id="setup-message" class="message"></div>
+    </div>
+  </section>
+
+  <section id="auth-page" class="center-page hidden">
+    <form id="auth-form" class="gate">
+      <h1 id="auth-title">欢迎使用日程清单</h1><p>登录同一账户，手机和电脑上的日程会自动保持一致。</p>
+      <label class="field">邮箱<input id="auth-email" type="email" autocomplete="email" required=""></label>
+      <label class="field">密码<input id="auth-password" type="password" minlength="6" autocomplete="current-password" required=""></label>
+      <button id="auth-submit" class="btn primary full" type="submit">登录</button>
+      <div id="auth-message" class="message"></div>
+      <div class="row auth-switch"><button id="auth-toggle" class="gate-link" type="button">第一次使用？创建账户</button><button id="edit-config" class="gate-link hidden" type="button" aria-hidden="true" tabindex="-1">发布者设置</button></div>
+    </form>
+  </section>
+
+  <div id="app" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand">日程清单</div>
+      <nav class="nav" aria-label="日程视图">
+        <button class="nav-btn active" data-view="today">今天 <span class="badge" id="count-today">0</span></button>
+        <button class="nav-btn" data-view="tomorrow">明天 <span class="badge" id="count-tomorrow">0</span></button>
+        <button class="nav-btn" data-view="upcoming">未来日程 <span class="badge" id="count-upcoming">0</span></button>
+        <button class="nav-btn" data-view="all">全部 <span class="badge" id="count-all">0</span></button>
+        <button class="nav-btn" data-view="completed">已完成 <span class="badge" id="count-completed">0</span></button>
+        <button class="nav-btn" data-view="calendar">月历概览 <span class="badge">⌗</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div id="account-email" class="account"></div>
+        <div class="sync-state"><span id="sync-dot" class="sync-dot"></span><span id="sync-text">已同步</span></div>
+        <div class="row"><button id="sync-btn" class="btn" type="button">同步</button><button id="logout-btn" class="btn" type="button">退出</button></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><h1 id="page-title">今天</h1><div class="top-actions"><input id="search" class="search" type="search" placeholder="搜索日程"><button id="mobile-sync" class="icon-btn" title="同步" type="button">↻</button><button id="add-btn" class="btn primary" type="button">＋ 新增日程</button></div></header>
+      <section id="admin-panel" class="admin-panel hidden" aria-label="管理员查看范围"><div class="admin-copy"><div class="admin-title"><span class="admin-badge">管理员</span>授权查看</div><div class="admin-note">他人日程为只读，不会替对方修改或删除内容。</div></div><label class="owner-picker">查看范围<select id="owner-filter"><option value="me">我的日程</option><option value="all">所有成员</option></select></label></section>
+      <section id="overview" class="overview"><div class="stat"><div class="stat-label">今日待办</div><div id="stat-today" class="stat-value">0</div></div><div class="stat"><div class="stat-label">未来 7 天</div><div id="stat-week" class="stat-value">0</div></div><div class="stat"><div class="stat-label">完成率</div><div id="stat-rate" class="stat-value">0%</div></div></section>
+      <section class="content-card">
+        <div class="content-head"><h2 id="section-title">日程列表</h2><span id="result-count" class="subtle"></span></div>
+        <div id="list-view" class="task-groups"></div>
+        <div id="calendar-view" class="hidden"><div class="calendar-head"><button id="prev-month" class="icon-btn" type="button" title="上个月">‹</button><div id="calendar-title" class="calendar-title"></div><button id="next-month" class="icon-btn" type="button" title="下个月">›</button><button id="today-jump" class="btn today-jump" type="button">回到今天</button></div><div class="calendar-scroll"><div class="calendar-inner"><div class="weekdays"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div><div id="calendar-grid" class="calendar-grid"></div></div></div><section id="day-timeline" class="timeline-panel"><div class="timeline-head"><h3 id="timeline-title">今日时间线</h3><button id="timeline-add" class="btn" type="button">＋ 添加到这一天</button></div><p class="timeline-hint">点击月历中的日期即可查看当天安排；点击时间块可以编辑日程。</p><div id="untimed-list" class="untimed"></div><div id="timeline-empty" class="timeline-empty hidden">这一天还没有设置具体时间的日程。</div><div id="timeline-scroll" class="timeline-scroll"><div id="timeline-canvas" class="timeline-canvas"></div></div></section></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="task-dialog">
+    <form id="task-form" class="dialog-body">
+      <div class="dialog-head"><h2 id="dialog-title">新增日程</h2><button id="dialog-close" class="close" type="button" aria-label="关闭">×</button></div>
+      <input id="task-id" type="hidden">
+      <div class="form-grid">
+        <label class="field span2">日程内容<input id="task-title" maxlength="200" required="" autocomplete="off" placeholder="要完成什么？"></label>
+        <label class="field">日期<input id="task-date" type="date" required=""></label>
+        <label class="field">开始时间（可选）<span class="time-picker"><span class="time-icon" aria-hidden="true">◷</span><select id="task-hour" aria-label="小时"><option value="">小时</option><option value="00">00 时</option><option value="01">01 时</option><option value="02">02 时</option><option value="03">03 时</option><option value="04">04 时</option><option value="05">05 时</option><option value="06">06 时</option><option value="07">07 时</option><option value="08">08 时</option><option value="09">09 时</option><option value="10">10 时</option><option value="11">11 时</option><option value="12">12 时</option><option value="13">13 时</option><option value="14">14 时</option><option value="15">15 时</option><option value="16">16 时</option><option value="17">17 时</option><option value="18">18 时</option><option value="19">19 时</option><option value="20">20 时</option><option value="21">21 时</option><option value="22">22 时</option><option value="23">23 时</option></select><span class="time-colon">:</span><select id="task-minute" aria-label="分钟"><option value="00">00 分</option><option value="05">05 分</option><option value="10">10 分</option><option value="15">15 分</option><option value="20">20 分</option><option value="25">25 分</option><option value="30">30 分</option><option value="35">35 分</option><option value="40">40 分</option><option value="45">45 分</option><option value="50">50 分</option><option value="55">55 分</option></select><button id="time-clear" class="time-clear" type="button" title="清除时间" aria-label="清除时间">×</button></span></label>
+        <label class="field">持续时长<select id="task-duration"><option value="15">15 分钟</option><option value="30">30 分钟</option><option value="45">45 分钟</option><option value="60" selected="">1 小时</option><option value="90">1 小时 30 分钟</option><option value="120">2 小时</option><option value="180">3 小时</option><option value="240">4 小时</option><option value="360">6 小时</option><option value="480">8 小时</option><option value="720">12 小时</option></select></label>
+        <label class="field">优先级<select id="task-priority"><option value="0">普通</option><option value="1">重要</option><option value="2">紧急</option></select></label>
+        <label class="field">分类<select id="task-category"><option value="未分类">未分类</option><option value="工作">工作</option><option value="学习">学习</option><option value="生活">生活</option><option value="健康">健康</option><option value="家庭">家庭</option><option value="娱乐">娱乐</option><option value="出行">出行</option><option value="提醒">提醒</option><option value="其他">其他</option></select></label>
+        <label class="field span2">备注<textarea id="task-notes" maxlength="1000" placeholder="补充说明（可选）"></textarea></label>
+      </div>
+      <div id="task-message" class="message"></div>
+      <div class="dialog-actions"><button id="dialog-cancel" class="btn" type="button">取消</button><button id="task-save" class="btn primary" type="submit">保存</button></div>
+    </form>
+  </dialog>
+
+  <button id="easter-trigger" class="easter-trigger" type="button" tabindex="-1" aria-hidden="true"></button>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (()=>{'use strict';
+    const EMBEDDED_CONFIG={"url":"https://izmwyvsksckpkoezhcnv.supabase.co","key":"sb_publishable_8nNQoTaleS2hwrEZEXepLw_71G5PRQg"};
+    const CONFIG_KEY='schedule-supabase-config-v1',SESSION_KEY='schedule-session-v1';
+    const SQL_TEMPLATE=`create extension if not exists pgcrypto;
+
+create table if not exists public.schedules (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 200),
+  notes text not null default '',
+  due_date date not null,
+  due_time time,
+  duration_minutes integer not null default 60,
+  priority smallint not null default 0 check (priority between 0 and 2),
+  category text not null default '未分类',
+  completed boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.schedules add column if not exists duration_minutes integer;
+update public.schedules set duration_minutes = 60 where duration_minutes is null;
+alter table public.schedules alter column duration_minutes set default 60;
+alter table public.schedules alter column duration_minutes set not null;
+
+create table if not exists public.schedule_admins (
+  email text primary key check (email = lower(email)),
+  created_at timestamptz not null default now()
+);
+alter table public.schedule_admins enable row level security;
+revoke all on public.schedule_admins from anon, authenticated;
+grant select on public.schedule_admins to authenticated;
+drop policy if exists "admins read own membership" on public.schedule_admins;
+create policy "admins read own membership" on public.schedule_admins for select
+using (email = lower(coalesce(auth.jwt()->>'email', '')));
+insert into public.schedule_admins (email)
+values (lower('__ADMIN_EMAIL__'))
+on conflict (email) do nothing;
+
+create schema if not exists private;
+create or replace function private.is_schedule_admin()
+returns boolean language sql stable security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.schedule_admins a
+    where a.email = lower(coalesce(auth.jwt()->>'email', ''))
+  );
+$$;
+revoke all on function private.is_schedule_admin() from public, anon;
+grant usage on schema private to authenticated;
+grant execute on function private.is_schedule_admin() to authenticated;
+
+create table if not exists public.schedule_members (
+  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  email text not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.schedule_members enable row level security;
+drop policy if exists "read own or admin members" on public.schedule_members;
+drop policy if exists "insert own member" on public.schedule_members;
+drop policy if exists "update own member" on public.schedule_members;
+create policy "read own or admin members" on public.schedule_members for select
+using (auth.uid() = user_id or (select private.is_schedule_admin()));
+create policy "insert own member" on public.schedule_members for insert
+with check (auth.uid() = user_id);
+create policy "update own member" on public.schedule_members for update
+using (auth.uid() = user_id) with check (auth.uid() = user_id);
+grant select, insert, update on public.schedule_members to authenticated;
+
+alter table public.schedules enable row level security;
+drop policy if exists "read own schedules" on public.schedules;
+drop policy if exists "read own or admin schedules" on public.schedules;
+drop policy if exists "insert own schedules" on public.schedules;
+drop policy if exists "update own schedules" on public.schedules;
+drop policy if exists "delete own schedules" on public.schedules;
+create policy "read own or admin schedules" on public.schedules for select
+using (auth.uid() = user_id or (select private.is_schedule_admin()));
+create policy "insert own schedules" on public.schedules for insert with check (auth.uid() = user_id);
+create policy "update own schedules" on public.schedules for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "delete own schedules" on public.schedules for delete using (auth.uid() = user_id);
+
+drop function if exists public.list_schedule_users();
+drop function if exists public.is_schedule_admin();
+
+create or replace function public.set_schedule_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end; $$;
+drop trigger if exists schedules_updated_at on public.schedules;
+create trigger schedules_updated_at before update on public.schedules
+for each row execute function public.set_schedule_updated_at();
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.schedules to authenticated;`;
+    const $=id=>document.getElementById(id), setupPage=$('setup-page'),authPage=$('auth-page'),app=$('app');
+    let config=EMBEDDED_CONFIG||readJSON(CONFIG_KEY),session=readJSON(SESSION_KEY),tasks=[],authMode='login',loading=false,syncTimer=null,isAdmin=false,scheduleUsers=[];
+    const state={view:'today',query:'',owner:'me',selectedDate:null,timelineDate:localISO(),month:new Date(new Date().getFullYear(),new Date().getMonth(),1)};
+    const els={list:$('list-view'),calendar:$('calendar-view'),toast:$('toast'),dialog:$('task-dialog')};
+    function sqlForAdmin(){const email=$('admin-email').value.trim().toLowerCase();return SQL_TEMPLATE.replace('__ADMIN_EMAIL__',email.replace(/'/g,"''"))}
+    function refreshSQL(){const email=$('admin-email').value.trim();$('schema-sql').value=email?sqlForAdmin():SQL_TEMPLATE.replace('__ADMIN_EMAIL__','请先在上方填写管理员邮箱')}
+    refreshSQL();$('admin-email').oninput=refreshSQL;
+    $('task-hour').innerHTML='<option value="">小时</option>'+Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')} 时</option>`).join('');
+    $('task-minute').innerHTML=Array.from({length:12},(_,i)=>`<option value="${String(i*5).padStart(2,'0')}">${String(i*5).padStart(2,'0')} 分</option>`).join('');
+    $('time-clear').onclick=()=>{$('task-hour').value='';$('task-minute').value='00'};
+    $('task-minute').onchange=()=>{if(!$('task-hour').value)$('task-hour').value=String(new Date().getHours()).padStart(2,'0')};
+
+    function readJSON(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+    function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
+    function localISO(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+    function addDays(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return localISO(d)}
+    function startMinutes(time){if(!time)return null;const [h,m]=time.slice(0,5).split(':').map(Number);return h*60+m}
+    function durationOf(task){const n=Number(task?.duration_minutes);return Number.isFinite(n)&&n>0?Math.max(15,Math.min(n,1440)):60}
+    function durationLabel(minutes){const h=Math.floor(minutes/60),m=minutes%60;return h?(m?`${h}小时${m}分钟`:`${h}小时`):`${m}分钟`}
+    function endTime(time,minutes){const start=startMinutes(time);if(start===null)return'';const end=start+minutes,day=end>=1440?'次日 ':'';return day+String(Math.floor((end%1440)/60)).padStart(2,'0')+':'+String(end%60).padStart(2,'0')}
+    function timeSummary(task){if(!task.due_time)return'未设置时间';const start=task.due_time.slice(0,5),duration=durationOf(task);return`${start}–${endTime(start,duration)} · ${durationLabel(duration)}`}
+    function categoryLabel(value){return!value||value==='默认'?'未分类':value}
+    function escapeHTML(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+    function dateLabel(iso){if(!iso)return'未安排';const t=localISO(),tm=addDays(t,1);if(iso===t)return'今天';if(iso===tm)return'明天';return new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'short'}).format(new Date(iso+'T12:00:00'))}
+    function toast(msg){els.toast.textContent=msg;els.toast.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>els.toast.classList.remove('show'),3000)}
+    function showPage(name){setupPage.classList.toggle('hidden',name!=='setup');authPage.classList.toggle('hidden',name!=='auth');app.classList.toggle('hidden',name!=='app')}
+    function setSync(text,offline=false){$('sync-text').textContent=text;$('sync-dot').classList.toggle('offline',offline)}
+    function setBusy(v){loading=v;app.classList.toggle('loading',v)}
+    function normalizedConfig(){return{url:$('config-url').value.trim().replace(/\/+$/,''),key:$('config-key').value.trim()}}
+    function validConfig(c){return c&&/^https:\/\/.+\.supabase\.co$/i.test(c.url||'')&&(c.key||'').length>20}
+
+    async function raw(path,{method='GET',body,auth=true,retry=true,headers={}}={}){
+      if(!config)throw Error('尚未配置云端');
+      const h={'apikey':config.key,'Content-Type':'application/json',...headers};
+      if(auth&&session?.access_token)h.Authorization='Bearer '+session.access_token;
+      let res;
+      try{res=await fetch(config.url+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)})}catch{throw Error('无法连接云端，请检查网络和项目地址')}
+      const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+      if(res.status===401&&auth&&retry&&session?.refresh_token){await refreshSession();return raw(path,{method,body,auth,retry:false,headers})}
+      if(!res.ok)throw Error(data?.message||data?.msg||data?.error_description||data?.hint||data?.details||`请求失败（${res.status}）`);
+      return data;
+    }
+    async function refreshSession(){
+      const data=await raw('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:session.refresh_token},auth:false,retry:false});
+      storeSession(data);return data;
+    }
+    function storeSession(data){session={...data,expires_at:Date.now()+(data.expires_in||3600)*1000};saveJSON(SESSION_KEY,session)}
+    async function ensureSession(){if(!session?.access_token)return false;try{if(!session.expires_at||session.expires_at-Date.now()<60000)await refreshSession();return true}catch{session=null;localStorage.removeItem(SESSION_KEY);return false}}
+
+    $('copy-sql').onclick=async()=>{const email=$('admin-email').value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){$('setup-message').style.color='var(--danger)';$('setup-message').textContent='请先填写正确的管理员登录邮箱。';$('admin-email').focus();return}const sql=sqlForAdmin();try{await navigator.clipboard.writeText(sql);toast('建表与管理员权限 SQL 已复制')}catch{$('schema-sql').select();document.execCommand('copy');toast('建表与管理员权限 SQL 已复制')}};
+    function checkedConfig(){const c=normalizedConfig();if(!validConfig(c)){$('setup-message').style.color='var(--danger)';$('setup-message').textContent='请先粘贴正确的 Project URL 和客户端密钥。';return null}return c}
+    $('save-config').onclick=()=>{const c=checkedConfig();if(!c)return;config=c;saveJSON(CONFIG_KEY,config);$('setup-message').textContent='';showPage('auth')};
+    $('export-app').onclick=()=>{const c=checkedConfig();if(!c)return;config=c;saveJSON(CONFIG_KEY,config);const source='<!doctype html>\n'+document.documentElement.outerHTML;const marker='const EMBEDDED_CONFIG=null;';if(!source.includes(marker)){$('setup-message').textContent='当前文件已经是分享版，无需再次生成。';return}const output=source.replace(marker,'const EMBEDDED_CONFIG='+JSON.stringify(c)+';');const url=URL.createObjectURL(new Blob([output],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='日程清单-分享版.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);$('setup-message').style.color='var(--accent)';$('setup-message').textContent='分享版已生成。把下载的文件发给朋友即可。'};
+    $('edit-config').onclick=()=>{$('config-url').value=config?.url||'';$('config-key').value=config?.key||'';showPage('setup')};
+    $('auth-toggle').onclick=()=>{authMode=authMode==='login'?'signup':'login';$('auth-title').textContent=authMode==='login'?'欢迎使用日程清单':'创建日程账户';$('auth-submit').textContent=authMode==='login'?'登录':'创建账户';$('auth-toggle').textContent=authMode==='login'?'第一次使用？创建账户':'已经注册？返回登录';$('auth-message').textContent='';$('auth-password').autocomplete=authMode==='login'?'current-password':'new-password'};
+    $('auth-form').onsubmit=async e=>{e.preventDefault();const email=$('auth-email').value.trim(),password=$('auth-password').value,msg=$('auth-message'),btn=$('auth-submit');msg.textContent='';btn.disabled=true;
+      try{const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup';const data=await raw(path,{method:'POST',body:{email,password},auth:false});if(data?.access_token){storeSession(data);await enterApp()}else{msg.style.color='var(--accent)';msg.textContent='账户已创建。请打开确认邮件，点击里面的按钮，再回来登录。';authMode='login';$('auth-title').textContent='欢迎使用日程清单';$('auth-submit').textContent='登录';$('auth-toggle').textContent='第一次使用？创建账户'}}catch(err){msg.style.color='var(--danger)';msg.textContent=err.message}finally{btn.disabled=false}};
+    $('logout-btn').onclick=async()=>{try{await raw('/auth/v1/logout',{method:'POST'})}catch{}session=null;tasks=[];localStorage.removeItem(SESSION_KEY);clearInterval(syncTimer);showPage('auth')};
+
+    function cacheKey(){return'schedule-cache-'+(session?.user?.id||'none')}
+    function isOwn(task){return task?.user_id===session?.user?.id}
+    function ownerEmail(id){return scheduleUsers.find(u=>u.user_id===id)?.email||('成员 '+String(id||'').slice(0,8))}
+    function scopedTasks(){if(!isAdmin||state.owner==='me')return tasks.filter(isOwn);if(state.owner==='all')return tasks.slice();return tasks.filter(x=>x.user_id===state.owner)}
+    function renderOwnerOptions(){const select=$('owner-filter'),value=state.owner;select.innerHTML='<option value="me">我的日程</option><option value="all">所有成员</option>';scheduleUsers.filter(u=>u.user_id!==session?.user?.id).forEach(u=>{const option=document.createElement('option');option.value=u.user_id;option.textContent=u.email;select.appendChild(option)});select.value=Array.from(select.options).some(o=>o.value===value)?value:'me';state.owner=select.value}
+    async function loadAdminContext(){isAdmin=false;scheduleUsers=[];state.owner='me';const id=session?.user?.id,email=(session?.user?.email||'').trim().toLowerCase();try{if(id&&email)await raw('/rest/v1/schedule_members?on_conflict=user_id',{method:'POST',body:{user_id:id,email,updated_at:new Date().toISOString()},headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}catch{}try{const rows=await raw('/rest/v1/schedule_admins?select=email&email=eq.'+encodeURIComponent(email));isAdmin=Array.isArray(rows)&&rows.length>0;if(isAdmin){const users=await raw('/rest/v1/schedule_members?select=user_id,email&order=email.asc');scheduleUsers=Array.isArray(users)?users:[]}}catch{}$('admin-panel').classList.toggle('hidden',!isAdmin);renderOwnerOptions()}
+    async function loadTasks({quiet=false}={}){if(!session)return;if(!quiet)setSync('同步中…');try{const data=await raw('/rest/v1/schedules?select=*&order=completed.asc,due_date.asc.nullslast,due_time.asc.nullslast,created_at.desc');tasks=Array.isArray(data)?data:[];if(!isAdmin)saveJSON(cacheKey(),tasks);setSync('已同步');render()}catch(err){if(!isAdmin){const cached=readJSON(cacheKey());if(!tasks.length&&Array.isArray(cached))tasks=cached}setSync(navigator.onLine?'同步失败':'离线缓存',true);render();if(!quiet)toast(err.message)}}
+    async function enterApp(){showPage('app');$('account-email').textContent=session?.user?.email||'';await loadAdminContext();if(!isAdmin){const cached=readJSON(cacheKey());if(Array.isArray(cached)){tasks=cached;render()}}await loadTasks();clearInterval(syncTimer);syncTimer=setInterval(()=>{if(document.visibilityState==='visible')loadTasks({quiet:true})},30000)}
+    $('sync-btn').onclick=()=>loadTasks();$('mobile-sync').onclick=()=>loadTasks();window.addEventListener('online',()=>loadTasks({quiet:true}));window.addEventListener('offline',()=>setSync('离线缓存',true));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&session)loadTasks({quiet:true})});
+
+    function filtered(){const t=localISO(),tm=addDays(t,1);let a=scopedTasks();if(state.view==='today')a=a.filter(x=>x.due_date===t);if(state.view==='tomorrow')a=a.filter(x=>x.due_date===tm);if(state.view==='upcoming')a=a.filter(x=>x.due_date>=t);if(state.view==='completed')a=a.filter(x=>x.completed);if(state.view==='date')a=a.filter(x=>x.due_date===state.selectedDate);if(state.view==='all')a=a.filter(()=>true);const q=state.query.toLowerCase();if(q)a=a.filter(x=>(x.title+' '+x.notes+' '+categoryLabel(x.category)+' '+ownerEmail(x.user_id)).toLowerCase().includes(q));return a.sort((a,b)=>Number(a.completed)-Number(b.completed)||(a.due_date||'9999').localeCompare(b.due_date||'9999')||(a.due_time||'99').localeCompare(b.due_time||'99')||b.priority-a.priority)}
+    function render(){const t=localISO(),tm=addDays(t,1),week=addDays(t,7),visible=scopedTasks(),pending=visible.filter(x=>!x.completed);$('count-today').textContent=visible.filter(x=>x.due_date===t).length;$('count-tomorrow').textContent=visible.filter(x=>x.due_date===tm).length;$('count-upcoming').textContent=visible.filter(x=>x.due_date>=t).length;$('count-all').textContent=visible.length;$('count-completed').textContent=visible.filter(x=>x.completed).length;$('stat-today').textContent=pending.filter(x=>x.due_date===t).length;$('stat-week').textContent=pending.filter(x=>x.due_date>=t&&x.due_date<=week).length;$('stat-rate').textContent=visible.length?Math.round(visible.filter(x=>x.completed).length/visible.length*100)+'%':'0%';
+      const titles={today:'今天',tomorrow:'明天',upcoming:'未来日程',all:'全部日程',completed:'已完成',calendar:'月历概览',date:state.selectedDate?dateLabel(state.selectedDate):'指定日期'};$('page-title').textContent=titles[state.view];document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));const cal=state.view==='calendar',ownScope=!isAdmin||state.owner==='me';$('add-btn').classList.toggle('hidden',!ownScope);$('timeline-add').classList.toggle('hidden',!ownScope);els.calendar.classList.toggle('hidden',!cal);els.list.classList.toggle('hidden',cal);$('overview').classList.toggle('hidden',cal);$('result-count').classList.toggle('hidden',cal);$('section-title').textContent=cal?'日程分布':'日程列表';if(cal)renderCalendar();else renderList(filtered())}
+    function renderList(arr){$('result-count').textContent=`${arr.length} 项`;els.list.replaceChildren();if(!arr.length){els.list.innerHTML='<div class="empty">这里还没有日程。</div>';return}const groups=new Map();arr.forEach(x=>{const k=x.due_date||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});for(const [date,items]of groups){const wrap=document.createElement('div');wrap.innerHTML=`<h3 class="group-title">${escapeHTML(dateLabel(date))}</h3><div class="task-list"></div>`;const box=wrap.querySelector('.task-list');items.forEach(x=>{const article=document.createElement('article');article.className='task'+(x.completed?' done':'');article.dataset.id=x.id;const priority=['普通','重要','紧急'][x.priority]||'普通',owner=isAdmin&&state.owner!=='me'?`<span class="chip owner-chip">${escapeHTML(ownerEmail(x.user_id))}</span>`:'',actions=isOwn(x)?`<button class="mini complete" data-action="toggle" type="button">${x.completed?'取消完成':'标记完成'}</button><button class="mini" data-action="edit" type="button">编辑</button><button class="mini delete" data-action="delete" type="button">删除</button>`:'<span class="read-only-label">只读</span>';article.innerHTML=`<div class="task-main"><div class="task-title">${escapeHTML(x.title)}</div><div class="task-meta"><span>${escapeHTML(timeSummary(x))}</span><span class="chip priority-chip level${x.priority}"><i class="priority p${x.priority}"></i>${priority}</span><span class="chip">${escapeHTML(categoryLabel(x.category))}</span>${owner}</div>${x.notes?`<div class="task-notes">${escapeHTML(x.notes)}</div>`:''}</div><div class="task-actions">${actions}</div>`;box.appendChild(article)});els.list.appendChild(wrap)}}
+    function renderCalendar(){const y=state.month.getFullYear(),m=state.month.getMonth(),visible=scopedTasks();$('calendar-title').textContent=`${y}年 ${m+1}月`;const first=new Date(y,m,1),offset=(first.getDay()+6)%7,start=new Date(y,m,1-offset);$('calendar-grid').replaceChildren();for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const iso=localISO(d),dayTasks=visible.filter(x=>x.due_date===iso).sort((a,b)=>(a.due_time||'99').localeCompare(b.due_time||'99')),day=document.createElement('div');day.className='day'+(d.getMonth()!==m?' muted':'')+(iso===localISO()?' today':'')+(iso===state.timelineDate?' selected':'');day.dataset.date=iso;day.tabIndex=0;const shown=dayTasks.slice(0,3).map(x=>`<span class="cal-event p${x.priority}${x.completed?' done':''}"><span class="cal-time">${x.due_time?escapeHTML(x.due_time.slice(0,5)):'全天'}</span><span class="cal-name">${escapeHTML(x.title)}</span></span>`).join('');day.innerHTML=`<span class="day-num">${d.getDate()}</span><span class="day-events">${shown}${dayTasks.length>3?`<span class="cal-more">还有 ${dayTasks.length-3} 项</span>`:''}</span>`;$('calendar-grid').appendChild(day)}renderTimeline()}
+    function renderTimeline(){const scale=1.5,date=state.timelineDate||localISO(),dayTasks=scopedTasks().filter(x=>x.due_date===date),timed=dayTasks.filter(x=>x.due_time).sort((a,b)=>a.due_time.localeCompare(b.due_time)),untimed=dayTasks.filter(x=>!x.due_time);$('timeline-title').textContent=`${dateLabel(date)} · 24 小时时间线`;$('untimed-list').innerHTML=untimed.map(x=>`<button class="untimed-item" data-id="${x.id}" type="button">未设置时间 · ${escapeHTML(x.title)}</button>`).join('');$('timeline-empty').classList.toggle('hidden',dayTasks.length>0);$('timeline-scroll').classList.toggle('hidden',timed.length===0);const canvas=$('timeline-canvas');canvas.replaceChildren();for(let h=0;h<24;h++){const label=document.createElement('span');label.className='hour-label';label.style.top=h*60*scale+'px';label.textContent=String(h).padStart(2,'0')+':00';canvas.appendChild(label)}const axis=document.createElement('span');axis.className='timeline-axis';canvas.appendChild(axis);const layer=document.createElement('div');layer.className='timeline-events';canvas.appendChild(layer);const laneEnds=[];const placed=timed.map(task=>{const start=startMinutes(task.due_time),end=Math.min(1440,start+durationOf(task));let lane=laneEnds.findIndex(v=>v<=start);if(lane<0)lane=laneEnds.length;laneEnds[lane]=end;return{task,start,end,lane}}),lanes=Math.max(1,laneEnds.length);placed.forEach(({task,start,end,lane})=>{const duration=end-start,block=document.createElement('button');block.type='button';block.className=`time-block p${task.priority}${task.completed?' done':''}${duration<45?' compact':''}`;block.dataset.id=task.id;block.style.top=start*scale+3+'px';block.style.height=Math.max(16,duration*scale-6)+'px';block.style.left=`calc(${lane*100/lanes}% + 2px)`;block.style.width=`calc(${100/lanes}% - 4px)`;block.innerHTML=`<div class="time-block-title">${escapeHTML(task.title)}</div><div class="time-block-time">${escapeHTML(timeSummary(task))}</div>`;layer.appendChild(block)});requestAnimationFrame(()=>{if(date===localISO()){const now=new Date(),top=(now.getHours()*60+now.getMinutes())*scale;$('timeline-scroll').scrollTop=Math.max(0,top-160)}else if(timed.length)$('timeline-scroll').scrollTop=Math.max(0,startMinutes(timed[0].due_time)*scale-80);else $('timeline-scroll').scrollTop=0})}
+    document.querySelector('.nav').onclick=e=>{const b=e.target.closest('[data-view]');if(!b)return;state.view=b.dataset.view;render()};
+    $('search').oninput=e=>{state.query=e.target.value.trim();render()};
+    $('owner-filter').onchange=e=>{state.owner=e.target.value;render()};
+    $('prev-month').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};$('next-month').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};$('today-jump').onclick=()=>{const now=new Date(),today=localISO(now);state.month=new Date(now.getFullYear(),now.getMonth(),1);state.selectedDate=state.timelineDate=today;renderCalendar()};
+    $('calendar-grid').onclick=e=>{const b=e.target.closest('[data-date]');if(!b)return;state.selectedDate=state.timelineDate=b.dataset.date;renderCalendar();setTimeout(()=>$('day-timeline').scrollIntoView({behavior:'smooth',block:'start'}),30)};
+    $('calendar-grid').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.closest('[data-date]')?.click()}};
+    function openDialog(task=null){if(task&&!isOwn(task)){toast('这是授权只读日程，不能修改');return}$('task-form').reset();$('task-message').textContent='';$('task-id').value=task?.id||'';$('dialog-title').textContent=task?'编辑日程':'新增日程';$('task-title').value=task?.title||'';$('task-date').value=task?.due_date||state.selectedDate||localISO();const time=task?.due_time?.slice(0,5)||'',minute=time?time.slice(3,5):'00',minuteSelect=$('task-minute');$('task-hour').value=time?time.slice(0,2):'';if(!Array.from(minuteSelect.options).some(o=>o.value===minute))minuteSelect.add(new Option(minute+' 分',minute));minuteSelect.value=minute;$('task-duration').value=String(durationOf(task));$('task-priority').value=String(task?.priority??0);const category=categoryLabel(task?.category),categorySelect=$('task-category');if(!Array.from(categorySelect.options).some(o=>o.value===category))categorySelect.add(new Option(category,category));categorySelect.value=category;$('task-notes').value=task?.notes||'';els.dialog.showModal();setTimeout(()=>$('task-title').focus(),50)}
+    $('timeline-add').onclick=()=>{state.selectedDate=state.timelineDate;openDialog()};
+    $('day-timeline').onclick=e=>{const b=e.target.closest('[data-id]');if(!b)return;const task=tasks.find(x=>x.id===b.dataset.id);if(task)openDialog(task)};
+    $('add-btn').onclick=()=>openDialog();$('dialog-close').onclick=$('dialog-cancel').onclick=()=>els.dialog.close();els.dialog.addEventListener('click',e=>{if(e.target===els.dialog)els.dialog.close()});
+    $('task-form').onsubmit=async e=>{e.preventDefault();const id=$('task-id').value,hour=$('task-hour').value,payload={title:$('task-title').value.trim(),due_date:$('task-date').value,due_time:hour?hour+':'+$('task-minute').value:null,duration_minutes:Number($('task-duration').value)||60,priority:Number($('task-priority').value),category:$('task-category').value||'未分类',notes:$('task-notes').value.trim()},btn=$('task-save');if(!payload.title)return;btn.disabled=true;$('task-message').textContent='';try{if(id)await raw('/rest/v1/schedules?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:payload,headers:{Prefer:'return=minimal'}});else await raw('/rest/v1/schedules',{method:'POST',body:payload,headers:{Prefer:'return=minimal'}});els.dialog.close();await loadTasks({quiet:true});toast(id?'日程已更新':'日程已添加')}catch(err){$('task-message').textContent=/duration_minutes|schema cache/i.test(err.message)?'需要先升级数据库：打开“发布者设置”，重新复制并运行第 2 步代码。已有日程不会丢失。':err.message}finally{btn.disabled=false}};
+    els.list.onclick=async e=>{const article=e.target.closest('.task');if(!article)return;const task=tasks.find(x=>x.id===article.dataset.id),action=e.target.dataset.action;if(!task||!action||!isOwn(task))return;if(action==='edit')openDialog(task);if(action==='toggle'){e.target.disabled=true;try{await raw('/rest/v1/schedules?id=eq.'+encodeURIComponent(task.id),{method:'PATCH',body:{completed:!task.completed},headers:{Prefer:'return=minimal'}});await loadTasks({quiet:true});toast(task.completed?'已取消完成':'已标记为完成')}catch(err){toast(err.message)}finally{e.target.disabled=false}}if(action==='delete'&&confirm(`删除“${task.title}”？`)){try{await raw('/rest/v1/schedules?id=eq.'+encodeURIComponent(task.id),{method:'DELETE',headers:{Prefer:'return=minimal'}});await loadTasks({quiet:true});toast('日程已删除')}catch(err){toast(err.message)}}};
+    let easterCount=0,easterTimer;$('easter-trigger').onclick=()=>{easterCount++;clearTimeout(easterTimer);easterTimer=setTimeout(()=>easterCount=0,1800);if(easterCount===4){easterCount=0;toast('忙碌的时候，也记得给自己留一点从容。')}};
+    (async function init(){if(EMBEDDED_CONFIG)$('edit-config').classList.add('hidden');if(!validConfig(config)){showPage('setup');return}$('config-url').value=config.url;$('config-key').value=config.key;if(await ensureSession())await enterApp();else showPage('auth')})();
+  })();
+  </script>
+  <script>
+    (()=>{
+      const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+      const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+      const tip=document.getElementById('ios-install-tip');
+      if(ios&&!standalone&&localStorage.getItem('schedule-ios-tip-dismissed')!=='1')tip?.classList.remove('hidden');
+      document.getElementById('ios-install-close')?.addEventListener('click',()=>{tip?.classList.add('hidden');localStorage.setItem('schedule-ios-tip-dismissed','1')});
+      if('serviceWorker'in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+    })();
+  </script>
+</body></html>
