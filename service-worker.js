@@ -1,4 +1,4 @@
-const CACHE = 'schedule-shell-v3';
+const CACHE = 'schedule-shell-v4';
 const asset = (path = '') => new URL(path, self.registration.scope).href;
 const SHELL = [
   asset(''),
