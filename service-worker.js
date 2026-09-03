@@ -1,4 +1,4 @@
-const CACHE = 'schedule-shell-v4';
+const CACHE = 'schedule-shell-v5';
 const asset = (path = '') => new URL(path, self.registration.scope).href;
 const SHELL = [
   asset(''),
@@ -43,4 +43,3 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
 });
-
