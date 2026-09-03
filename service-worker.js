@@ -1,4 +1,4 @@
-const CACHE = 'schedule-shell-v5';
+const CACHE = 'schedule-shell-2026.09.03.2';
 const asset = (path = '') => new URL(path, self.registration.scope).href;
 const SHELL = [
   asset(''),
@@ -10,14 +10,14 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL.map(url => new Request(url, {cache:'reload'})))));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))),
+      Promise.all(keys.filter((key) => key.startsWith('schedule-shell-') && key !== CACHE).map((key) => caches.delete(key))),
     ),
   );
   self.clients.claim();
@@ -27,16 +27,21 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname === new URL('version.json', self.registration.scope).pathname) {
+    event.respondWith(fetch(request, {cache:'no-store'}));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, {cache:'no-store'})
         .then((response) => {
+          if (!response.ok) throw new Error('Page unavailable');
           const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          event.waitUntil(caches.open(CACHE).then((cache) => cache.put(asset('index.html'), copy)));
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match(asset('index.html')))),
+        .catch(() => caches.open(CACHE).then((cache) => cache.match(asset('index.html')))),
     );
     return;
   }
