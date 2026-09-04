@@ -77,7 +77,7 @@
       </nav>
       <div class="sidebar-foot">
         <div id="account-email" class="account"></div>
-        <div class="app-version-row"><span>界面版本 2026.09.04.5</span><button id="check-app-update" class="gate-link" type="button">检查界面更新</button><span id="app-update-status" role="status"></span></div>
+        <div class="app-version-row"><span>界面版本 2026.09.04.6</span><button id="check-app-update" class="gate-link" type="button">检查界面更新</button><span id="app-update-status" role="status"></span></div>
         <div class="sync-state"><span id="sync-dot" class="sync-dot"></span><span id="sync-text">已同步</span></div>
         <div class="row"><button id="sync-btn" class="btn" type="button">同步</button><button id="logout-btn" class="btn" type="button">退出</button></div>
       </div>
@@ -129,12 +129,13 @@
     const date=s=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s||''))throw Error('请选择有效日期。');const d=new Date(s+'T12:00:00Z');if(!Number.isFinite(+d)||d.toISOString().slice(0,10)!==s)throw Error('请选择有效日期。');return d};
     const add=(s,n)=>{const d=date(s);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
     const monday=s=>add(s,-((date(s).getUTCDay()+6)%7));
+    const termWeek=(weekStart,firstWeek)=>{const current=monday(weekStart),first=monday(firstWeek),offset=Math.round((date(current)-date(first))/(7*86400000));return{number:offset>=0?offset+1:-offset,before:offset<0,label:offset>=0?`第${offset+1}周`:`开学前${-offset}周`}};
     const minutes=s=>{if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(s||''))throw Error('请选择有效时间。');return Number(s.slice(0,2))*60+Number(s.slice(3,5))};
     const time=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
     function occurrences({start,end,days,from,until,frequency='all'}){const a=date(start),b=date(end);if(a.getUTCDay()!==1)throw Error('学期第 1 周的开始日期需要选择周一。');if(b<a||b-a>=420*86400000)throw Error('请选择不超过 60 周的学期起止日期。');if(!days.length||days.some(d=>!Number.isInteger(d)||d<0||d>6))throw Error('请至少选择一个上课日。');const duration=minutes(until)-minutes(from);if(duration<15)throw Error('结束时间需比开始时间晚至少 15 分钟，且在同一天。');if(!['all','odd','even'].includes(frequency))throw Error('请选择有效周次。');const result=[];for(let s=start,i=0;s<=end;s=add(s,1),i++){const week=Math.floor(i/7)+1;if(days.includes(date(s).getUTCDay())&&(frequency==='all'||week%2===(frequency==='odd'?1:0)))result.push({due_date:s,due_time:from,duration_minutes:duration})}if(!result.length)throw Error('所选日期和周次内没有课程，请调整。');return result}
     function layout(items){const sorted=items.slice().sort((a,b)=>a.start-b.start||a.end-b.end),groups=[];let group=[],end=-1;for(const item of sorted){if(item.start>=end&&group.length){groups.push(group);group=[];end=-1}group.push({...item});end=Math.max(end,item.end)}if(group.length)groups.push(group);return groups.flatMap(g=>{const ends=[];for(const x of g){let lane=ends.findIndex(e=>e<=x.start);if(lane<0)lane=ends.length;ends[lane]=x.end;x.lane=lane}return g.map(x=>({...x,lanes:ends.length}))})}
     const color=title=>{const palette=['#427ab8','#9770bb','#bc7640','#3d948b','#b35e86','#738842'];let hash=0;for(const c of title)hash=(hash*31+c.codePointAt(0))>>>0;return palette[hash%palette.length]};
-    return{add,monday,minutes,time,occurrences,layout,color};
+    return{add,monday,termWeek,minutes,time,occurrences,layout,color};
   })();
   </script>
   <script>
@@ -234,6 +235,7 @@ grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.schedules to authenticated;`;
     const $=id=>document.getElementById(id), setupPage=$('setup-page'),authPage=$('auth-page'),app=$('app');
     let config=EMBEDDED_CONFIG||readJSON(CONFIG_KEY),session=readJSON(SESSION_KEY),tasks=[],authMode='login',loading=false,syncTimer=null,reminderTimer=null,isAdmin=false,scheduleUsers=[];
+    const TERM_FIRST_WEEK='2026-09-07';
     const state={view:'today',lastListView:'today',query:'',owner:'me',selectedDate:null,timelineDate:localISO(),week:ScheduleTimetable.monday(localISO()),month:new Date(new Date().getFullYear(),new Date().getMonth(),1)};
     const els={list:$('list-view'),calendar:$('calendar-view'),toast:$('toast'),dialog:$('task-dialog')};
     function sqlForAdmin(){const email=$('admin-email').value.trim().toLowerCase();return SQL_TEMPLATE.replace('__ADMIN_EMAIL__',email.replace(/'/g,"''"))}
@@ -334,7 +336,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
       const timed=dates.map(day=>shown.flatMap(task=>{if(!task.due_time)return[];const start=startMinutes(task.due_time),finish=start+durationOf(task);if(task.due_date===day)return[{task,start,end:Math.min(1440,finish)}];if(finish>1440&&task.due_date===T.add(day,-1))return[{task,start:0,end:finish-1440,continuation:true}];return[]}));
       const all=timed.flat(),from=Math.min(8*60,...all.map(x=>Math.floor(x.start/60)*60)),until=Math.max(23*60,...all.map(x=>Math.ceil(x.end/60)*60)),scale=1.6,height=(until-from)*scale;
       const top=m=>compact?((m-from)*100/(until-from))+'%':((m-from)*scale)+'px',size=m=>compact?'calc('+(m*100/(until-from))+'% - 1px)':Math.max(20,m*scale-2)+'px',columnHeight=compact?'100%':height+'px';
-      $('week-title').textContent=mobile?state.week.slice(5).replace('-','/')+' — '+dates[6].slice(5).replace('-','/'):state.week+' — '+dates[6];
+      const term=T.termWeek(state.week,TERM_FIRST_WEEK),shortRange=state.week.slice(5).replace('-','/')+'–'+dates[6].slice(5).replace('-','/');$('week-title').textContent=term.label+' · '+(mobile?shortRange:state.week+' — '+dates[6]);
       $('week-hint').textContent=(canAdd?'点课程看详情，点空白安排活动，点日期看当天。':'授权只读：点课程或日期查看详情。')+(q?' 已筛选；返回日程可清除搜索。':'');
       let output='<div class="week-heading week-corner">时间</div>'+dates.map((day,i)=>'<div class="week-heading'+(day===localISO()?' today':'')+'"><button type="button" data-week-day="'+day+'" aria-label="'+day+' 查看当天全部安排">周'+['一','二','三','四','五','六','日'][i]+'<small>'+day.slice(5).replace('-','/')+'</small></button></div>').join('');
       const untimed=dates.map(day=>shown.filter(x=>x.due_date===day&&!x.due_time));
@@ -411,7 +413,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
       const tip=document.getElementById('ios-install-tip');
       if(ios&&!standalone&&localStorage.getItem('schedule-ios-tip-dismissed')!=='1')tip?.classList.remove('hidden');
       document.getElementById('ios-install-close')?.addEventListener('click',()=>{tip?.classList.add('hidden');localStorage.setItem('schedule-ios-tip-dismissed','1')});
-      const APP_VERSION='2026.09.04.5',byId=id=>document.getElementById(id);
+      const APP_VERSION='2026.09.04.6',byId=id=>document.getElementById(id);
       let registration=null,checking=false,lastCheck=0,latest=APP_VERSION;
       async function checkAppUpdate(manual=false){
         if(checking)return;if(!manual&&Date.now()-lastCheck<60000)return;checking=true;lastCheck=Date.now();
