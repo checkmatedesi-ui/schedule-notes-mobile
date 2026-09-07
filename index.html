@@ -970,9 +970,12 @@
         opacity: 0;
         z-index: 30;
         touch-action: none;
+        appearance: none;
+        outline: none;
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
       }
       .easter-finale {
         position: fixed;
@@ -983,13 +986,11 @@
         overflow: hidden;
         background:
           radial-gradient(
-            circle at 50% 45%,
-            rgba(255, 245, 175, 0.42),
-            transparent 24%
+            circle at 50% 42%,
+            rgba(239, 224, 184, 0.2),
+            transparent 30%
           ),
-          radial-gradient(circle at 18% 20%, #764ba2 0, transparent 42%),
-          radial-gradient(circle at 82% 78%, #ff758c 0, transparent 42%),
-          linear-gradient(135deg, #101331, #243b75 50%, #401b5d);
+          linear-gradient(145deg, #0d1d19, #19382f 52%, #10251f);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -1011,46 +1012,37 @@
         border-radius: 50%;
       }
       .easter-finale::before {
-        background: conic-gradient(
-          from 0deg,
-          transparent,
-          rgba(255, 224, 102, 0.42),
-          transparent 18%,
-          rgba(119, 235, 255, 0.38),
-          transparent 42%,
-          rgba(255, 126, 179, 0.4),
-          transparent 68%,
-          rgba(211, 255, 138, 0.35),
-          transparent
-        );
-        filter: blur(16px);
-        animation: finale-spin 9s linear infinite;
+        width: min(105vw, 820px);
+        border: 1px solid rgba(239, 224, 184, 0.2);
+        box-shadow:
+          0 0 90px rgba(213, 199, 160, 0.12),
+          inset 0 0 90px rgba(255, 255, 255, 0.04);
+        animation: finale-spin 18s linear infinite;
       }
       .easter-finale::after {
-        width: min(72vw, 580px);
-        border: 2px solid rgba(255, 255, 255, 0.35);
+        width: min(68vw, 520px);
+        border: 1px solid rgba(248, 241, 222, 0.38);
         box-shadow:
-          0 0 48px rgba(255, 229, 124, 0.5),
-          inset 0 0 48px rgba(130, 226, 255, 0.28);
-        animation: finale-ring 2.2s ease-in-out infinite;
+          0 0 52px rgba(230, 212, 163, 0.16),
+          inset 0 0 46px rgba(244, 239, 228, 0.08);
+        animation: finale-ring 3.6s ease-in-out infinite;
       }
       .easter-finale-message {
         position: relative;
         z-index: 2;
         padding: 34px 30px;
         text-align: center;
-        color: #fff;
+        color: #f7f0df;
         text-shadow:
-          0 0 12px rgba(255, 255, 255, 0.9),
-          0 0 34px rgba(255, 219, 104, 0.9),
-          0 0 70px rgba(255, 103, 178, 0.65);
-        animation: finale-arrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+          0 0 16px rgba(255, 255, 255, 0.38),
+          0 0 48px rgba(230, 212, 163, 0.3);
+        animation: finale-arrive 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
       .easter-finale-message strong {
         display: block;
         font-size: clamp(36px, 10vw, 92px);
-        font-weight: 800;
-        letter-spacing: 0.08em;
+        font-weight: 700;
+        letter-spacing: 0.1em;
       }
       .finale-particle {
         position: absolute;
@@ -1060,7 +1052,7 @@
         height: var(--size);
         border-radius: 50%;
         background: var(--color);
-        box-shadow: 0 0 18px var(--color);
+        box-shadow: 0 0 14px var(--color);
         animation: finale-float var(--duration) ease-in-out var(--delay)
           infinite;
       }
@@ -1083,12 +1075,12 @@
       @keyframes finale-arrive {
         from {
           opacity: 0;
-          transform: scale(0.35) rotate(-5deg);
-          filter: blur(12px);
+          transform: translateY(18px) scale(0.82);
+          filter: blur(7px);
         }
         to {
           opacity: 1;
-          transform: scale(1) rotate(0);
+          transform: translateY(0) scale(1);
           filter: blur(0);
         }
       }
@@ -5177,7 +5169,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           ultimateHoldTimer,
           ultimateHoldCompleted = false,
           ultimateHoldStartedAt = 0,
-          ultimateIgnoreClickUntil = 0,
+          ultimateSkipNextClick = false,
           ultimateArmedUntil = 0,
           ultimateTapCount = 0,
           ultimateTapTimer,
@@ -5197,22 +5189,16 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           easterFinale.setAttribute("aria-hidden", "true");
         }
         function showUltimateEasterEgg() {
-          const colors = [
-            "#ffe66d",
-            "#7bf1ff",
-            "#ff86c8",
-            "#b8ff76",
-            "#ffffff",
-          ];
+          const colors = ["#e6d4a3", "#f4efe4", "#9fc1ad"];
           easterParticles.replaceChildren(
-            ...Array.from({ length: 34 }, (_, index) => {
+            ...Array.from({ length: 18 }, (_, index) => {
               const particle = document.createElement("i");
               particle.className = "finale-particle";
               particle.style.setProperty("--x", `${Math.random() * 100}%`);
               particle.style.setProperty("--y", `${Math.random() * 100}%`);
               particle.style.setProperty(
                 "--size",
-                `${4 + Math.random() * 9}px`,
+                `${3 + Math.random() * 6}px`,
               );
               particle.style.setProperty(
                 "--drift",
@@ -5220,7 +5206,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
               );
               particle.style.setProperty(
                 "--duration",
-                `${1.8 + Math.random() * 2.4}s`,
+                `${2.8 + Math.random() * 2.8}s`,
               );
               particle.style.setProperty("--delay", `${-index * 0.09}s`);
               particle.style.setProperty(
@@ -5260,7 +5246,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
               ultimateArmedUntil = Date.now() + 5000;
               ultimateTapCount = 0;
               easterCount = 0;
-              ultimateIgnoreClickUntil = Date.now() + 600;
+              ultimateSkipNextClick = type === "pointerup";
             }
             ultimateHoldCompleted = false;
             ultimateHoldStartedAt = 0;
@@ -5269,7 +5255,10 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           }),
         );
         easterTrigger.onclick = () => {
-          if (Date.now() < ultimateIgnoreClickUntil) return;
+          if (ultimateSkipNextClick) {
+            ultimateSkipNextClick = false;
+            return;
+          }
           if (Date.now() < ultimateArmedUntil) {
             ultimateTapCount++;
             clearTimeout(ultimateTapTimer);
@@ -5328,7 +5317,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.07.3",
+        const APP_VERSION = "2026.09.07.4",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
