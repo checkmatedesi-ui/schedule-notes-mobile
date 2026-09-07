@@ -970,6 +970,144 @@
         opacity: 0;
         z-index: 30;
       }
+      .easter-finale {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            circle at 50% 45%,
+            rgba(255, 245, 175, 0.42),
+            transparent 24%
+          ),
+          radial-gradient(circle at 18% 20%, #764ba2 0, transparent 42%),
+          radial-gradient(circle at 82% 78%, #ff758c 0, transparent 42%),
+          linear-gradient(135deg, #101331, #243b75 50%, #401b5d);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.45s ease,
+          visibility 0.45s;
+      }
+      .easter-finale.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+      .easter-finale::before,
+      .easter-finale::after {
+        content: "";
+        position: absolute;
+        width: min(115vw, 900px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+      }
+      .easter-finale::before {
+        background: conic-gradient(
+          from 0deg,
+          transparent,
+          rgba(255, 224, 102, 0.42),
+          transparent 18%,
+          rgba(119, 235, 255, 0.38),
+          transparent 42%,
+          rgba(255, 126, 179, 0.4),
+          transparent 68%,
+          rgba(211, 255, 138, 0.35),
+          transparent
+        );
+        filter: blur(16px);
+        animation: finale-spin 9s linear infinite;
+      }
+      .easter-finale::after {
+        width: min(72vw, 580px);
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        box-shadow:
+          0 0 48px rgba(255, 229, 124, 0.5),
+          inset 0 0 48px rgba(130, 226, 255, 0.28);
+        animation: finale-ring 2.2s ease-in-out infinite;
+      }
+      .easter-finale-message {
+        position: relative;
+        z-index: 2;
+        padding: 34px 30px;
+        text-align: center;
+        color: #fff;
+        text-shadow:
+          0 0 12px rgba(255, 255, 255, 0.9),
+          0 0 34px rgba(255, 219, 104, 0.9),
+          0 0 70px rgba(255, 103, 178, 0.65);
+        animation: finale-arrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .easter-finale-message strong {
+        display: block;
+        font-size: clamp(36px, 10vw, 92px);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+      .finale-particle {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background: var(--color);
+        box-shadow: 0 0 18px var(--color);
+        animation: finale-float var(--duration) ease-in-out var(--delay)
+          infinite;
+      }
+      @keyframes finale-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes finale-ring {
+        0%,
+        100% {
+          transform: scale(0.82);
+          opacity: 0.35;
+        }
+        50% {
+          transform: scale(1.08);
+          opacity: 0.9;
+        }
+      }
+      @keyframes finale-arrive {
+        from {
+          opacity: 0;
+          transform: scale(0.35) rotate(-5deg);
+          filter: blur(12px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) rotate(0);
+          filter: blur(0);
+        }
+      }
+      @keyframes finale-float {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(0.65);
+          opacity: 0.25;
+        }
+        50% {
+          transform: translate3d(var(--drift), -36px, 0) scale(1.35);
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .easter-finale::before,
+        .easter-finale::after,
+        .easter-finale-message,
+        .finale-particle {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
       .loading {
         opacity: 0.55;
         pointer-events: none;
@@ -2472,6 +2610,19 @@
       tabindex="-1"
       aria-hidden="true"
     ></button>
+    <div
+      id="easter-finale"
+      class="easter-finale"
+      role="dialog"
+      aria-modal="true"
+      aria-label="隐藏祝福"
+      aria-hidden="true"
+    >
+      <div id="easter-particles" aria-hidden="true"></div>
+      <div class="easter-finale-message">
+        <strong>WYG天天开心</strong>
+      </div>
+    </div>
     <dialog
       id="week-detail-dialog"
       class="week-detail-dialog"
@@ -5006,17 +5157,126 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             pressArticle = null;
           }),
         );
+        const easterMessages = [
+          "忙碌的时候，也记得给自己留一点从容。",
+          "愿今天的小计划，都能变成明天的小确幸。",
+          "慢一点也没关系，你一直在向前走。",
+          "认真生活的人，值得被温柔以待。",
+          "把今天过好，就是很了不起的进度。",
+          "愿你的日程有序，也愿你的心里有光。",
+          "别忘了休息，留白也是生活的一部分。",
+          "今天也辛苦啦，给自己一个小小的拥抱。",
+        ];
         let easterCount = 0,
-          easterTimer;
-        $("easter-trigger").onclick = () => {
+          easterTimer,
+          lastEasterMessage = -1,
+          ultimateHoldTimer,
+          ultimateHoldCompleted = false,
+          ultimateArmedUntil = 0,
+          ultimateTapCount = 0,
+          ultimateTapTimer,
+          finaleTimer;
+        const easterTrigger = $("easter-trigger"),
+          easterFinale = $("easter-finale"),
+          easterParticles = $("easter-particles");
+        function randomEasterMessage() {
+          let index = Math.floor(Math.random() * easterMessages.length);
+          if (index === lastEasterMessage)
+            index = (index + 1) % easterMessages.length;
+          lastEasterMessage = index;
+          return easterMessages[index];
+        }
+        function hideUltimateEasterEgg() {
+          easterFinale.classList.remove("show");
+          easterFinale.setAttribute("aria-hidden", "true");
+        }
+        function showUltimateEasterEgg() {
+          const colors = [
+            "#ffe66d",
+            "#7bf1ff",
+            "#ff86c8",
+            "#b8ff76",
+            "#ffffff",
+          ];
+          easterParticles.replaceChildren(
+            ...Array.from({ length: 34 }, (_, index) => {
+              const particle = document.createElement("i");
+              particle.className = "finale-particle";
+              particle.style.setProperty("--x", `${Math.random() * 100}%`);
+              particle.style.setProperty("--y", `${Math.random() * 100}%`);
+              particle.style.setProperty(
+                "--size",
+                `${4 + Math.random() * 9}px`,
+              );
+              particle.style.setProperty(
+                "--drift",
+                `${-30 + Math.random() * 60}px`,
+              );
+              particle.style.setProperty(
+                "--duration",
+                `${1.8 + Math.random() * 2.4}s`,
+              );
+              particle.style.setProperty("--delay", `${-index * 0.09}s`);
+              particle.style.setProperty(
+                "--color",
+                colors[index % colors.length],
+              );
+              return particle;
+            }),
+          );
+          easterFinale.classList.add("show");
+          easterFinale.setAttribute("aria-hidden", "false");
+          clearTimeout(finaleTimer);
+          finaleTimer = setTimeout(hideUltimateEasterEgg, 6500);
+        }
+        function resetUltimateTaps() {
+          ultimateTapCount = 0;
+          ultimateArmedUntil = 0;
+        }
+        easterTrigger.addEventListener("pointerdown", (event) => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          clearTimeout(ultimateHoldTimer);
+          ultimateHoldCompleted = false;
+          ultimateHoldTimer = setTimeout(() => {
+            ultimateHoldCompleted = true;
+            ultimateArmedUntil = Date.now() + 3000;
+            ultimateTapCount = 0;
+            easterCount = 0;
+          }, 8000);
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((type) =>
+          easterTrigger.addEventListener(type, () => {
+            clearTimeout(ultimateHoldTimer);
+            if (type === "pointerup" && ultimateHoldCompleted) {
+              easterTrigger.dataset.ignoreClick = "true";
+              setTimeout(() => delete easterTrigger.dataset.ignoreClick, 0);
+            }
+          }),
+        );
+        easterTrigger.onclick = () => {
+          if (easterTrigger.dataset.ignoreClick) return;
+          if (Date.now() < ultimateArmedUntil) {
+            ultimateTapCount++;
+            clearTimeout(ultimateTapTimer);
+            ultimateTapTimer = setTimeout(resetUltimateTaps, 3000);
+            if (ultimateTapCount === 4) {
+              resetUltimateTaps();
+              showUltimateEasterEgg();
+            }
+            return;
+          }
           easterCount++;
           clearTimeout(easterTimer);
           easterTimer = setTimeout(() => (easterCount = 0), 1800);
           if (easterCount === 4) {
             easterCount = 0;
-            toast("忙碌的时候，也记得给自己留一点从容。");
+            toast(randomEasterMessage());
           }
         };
+        easterFinale.onclick = hideUltimateEasterEgg;
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") hideUltimateEasterEgg();
+        });
         (async function init() {
           document.documentElement.classList.toggle(
             "wechat",
@@ -5053,7 +5313,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.07.1",
+        const APP_VERSION = "2026.09.07.2",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
