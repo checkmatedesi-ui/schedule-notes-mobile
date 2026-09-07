@@ -961,14 +961,18 @@
       }
       .easter-trigger {
         position: fixed;
-        right: 0;
-        bottom: 0;
-        width: 54px;
-        height: 54px;
+        right: max(0px, env(safe-area-inset-right));
+        bottom: max(0px, env(safe-area-inset-bottom));
+        width: 72px;
+        height: 72px;
         border: 0;
         background: transparent;
         opacity: 0;
         z-index: 30;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
       }
       .easter-finale {
         position: fixed;
@@ -5172,6 +5176,8 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           lastEasterMessage = -1,
           ultimateHoldTimer,
           ultimateHoldCompleted = false,
+          ultimateHoldStartedAt = 0,
+          ultimateIgnoreClickUntil = 0,
           ultimateArmedUntil = 0,
           ultimateTapCount = 0,
           ultimateTapTimer,
@@ -5237,28 +5243,37 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           if (event.pointerType === "mouse" && event.button !== 0) return;
           clearTimeout(ultimateHoldTimer);
           ultimateHoldCompleted = false;
+          ultimateHoldStartedAt = Date.now();
+          easterTrigger.setPointerCapture?.(event.pointerId);
           ultimateHoldTimer = setTimeout(() => {
             ultimateHoldCompleted = true;
-            ultimateArmedUntil = Date.now() + 3000;
-            ultimateTapCount = 0;
-            easterCount = 0;
+            navigator.vibrate?.(35);
           }, 8000);
         });
-        ["pointerup", "pointercancel", "pointerleave"].forEach((type) =>
-          easterTrigger.addEventListener(type, () => {
+        ["pointerup", "pointercancel"].forEach((type) =>
+          easterTrigger.addEventListener(type, (event) => {
             clearTimeout(ultimateHoldTimer);
-            if (type === "pointerup" && ultimateHoldCompleted) {
-              easterTrigger.dataset.ignoreClick = "true";
-              setTimeout(() => delete easterTrigger.dataset.ignoreClick, 0);
+            const heldLongEnough =
+              ultimateHoldCompleted ||
+              Date.now() - ultimateHoldStartedAt >= 8000;
+            if (heldLongEnough) {
+              ultimateArmedUntil = Date.now() + 5000;
+              ultimateTapCount = 0;
+              easterCount = 0;
+              ultimateIgnoreClickUntil = Date.now() + 600;
             }
+            ultimateHoldCompleted = false;
+            ultimateHoldStartedAt = 0;
+            if (easterTrigger.hasPointerCapture?.(event.pointerId))
+              easterTrigger.releasePointerCapture(event.pointerId);
           }),
         );
         easterTrigger.onclick = () => {
-          if (easterTrigger.dataset.ignoreClick) return;
+          if (Date.now() < ultimateIgnoreClickUntil) return;
           if (Date.now() < ultimateArmedUntil) {
             ultimateTapCount++;
             clearTimeout(ultimateTapTimer);
-            ultimateTapTimer = setTimeout(resetUltimateTaps, 3000);
+            ultimateTapTimer = setTimeout(resetUltimateTaps, 5000);
             if (ultimateTapCount === 4) {
               resetUltimateTaps();
               showUltimateEasterEgg();
@@ -5313,7 +5328,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.07.2",
+        const APP_VERSION = "2026.09.07.3",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
