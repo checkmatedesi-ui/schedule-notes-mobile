@@ -1957,6 +1957,26 @@
         font-size: 0.75rem;
         line-height: 1.2;
       }
+      @media (max-width: 850px) {
+        #week-view.week-fit .week-block.has-course-details {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 1px;
+        }
+        #week-view.week-fit .week-block.has-course-details strong,
+        #week-view.week-fit .week-block.has-course-details .week-detail {
+          display: block;
+          margin: 0;
+          white-space: normal;
+          overflow: visible;
+          text-overflow: clip;
+          overflow-wrap: anywhere;
+          word-break: break-all;
+          font-size: clamp(8px, 2.25vw, 10px);
+          line-height: 1.08;
+        }
+      }
       .app-version-row {
         display: flex;
         align-items: center;
@@ -2893,19 +2913,64 @@
             return g.map((x) => ({ ...x, lanes: ends.length }));
           });
         }
-        const color = (title) => {
-          const palette = [
+        const palette = [
             "#427ab8",
             "#9770bb",
             "#bc7640",
             "#3d948b",
             "#b35e86",
             "#738842",
+            "#c05d54",
+            "#4c83a5",
+            "#8d6b3f",
+            "#5f74b7",
+            "#a45f68",
+            "#4f8b62",
+            "#a66f32",
+            "#6e63a8",
+            "#388590",
+            "#9b596f",
+            "#597c3f",
+            "#b26d55",
+            "#5171a1",
+            "#7f6b33",
+            "#3f8275",
+            "#8b5c9f",
+            "#a45947",
+            "#557a88",
           ];
+        const hashTitle = (title) => {
           let hash = 0;
-          for (const c of title) hash = (hash * 31 + c.codePointAt(0)) >>> 0;
-          return palette[hash % palette.length];
+          for (const c of String(title || ""))
+            hash = (hash * 31 + c.codePointAt(0)) >>> 0;
+          return hash;
         };
+        function colors(titles) {
+          const names = [...new Set(titles.map((title) => String(title || "")))].sort(
+              (a, b) => hashTitle(a) - hashTitle(b) || a.localeCompare(b),
+            ),
+            result = new Map(),
+            used = new Set();
+          names.forEach((title, order) => {
+            const start = hashTitle(title) % palette.length;
+            let value = "";
+            for (let step = 0; step < palette.length; step++) {
+              const candidate = palette[(start + step) % palette.length];
+              if (!used.has(candidate)) {
+                value = candidate;
+                break;
+              }
+            }
+            if (!value) {
+              const hue = ((order - palette.length) * 137.508) % 360;
+              value = `hsl(${hue.toFixed(3)} 54% ${42 + (order % 3) * 5}%)`;
+            }
+            used.add(value);
+            result.set(title, value);
+          });
+          return result;
+        }
+        const color = (title) => colors([title]).get(String(title || ""));
         return {
           add,
           monday,
@@ -2915,6 +2980,7 @@
           occurrences,
           layout,
           color,
+          colors,
         };
       })();
     </script>
@@ -4153,6 +4219,11 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                 .toLowerCase()
                 .includes(q),
           );
+          const courseColors = T.colors(
+            shown
+              .filter((task) => task.category === "课程")
+              .map((task) => task.title),
+          );
           const timed = dates.map((day) =>
             shown.flatMap((task) => {
               if (!task.due_time) return [];
@@ -4294,7 +4365,9 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                   courseDetails = course
                     ? [meta.teacher, meta.location].filter(Boolean)
                     : [],
-                  color = course ? T.color(task.title) : "#3f7567",
+                  color = course
+                    ? courseColors.get(String(task.title || ""))
+                    : "#3f7567",
                   visibleNotes = course
                     ? [meta.teacher, meta.location, meta.extra]
                         .filter(Boolean)
@@ -5298,7 +5371,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.07.5",
+        const APP_VERSION = "2026.09.14.1",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
