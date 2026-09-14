@@ -2785,8 +2785,20 @@
                 required /></label
             ><label class="field"
               >结束时间<input id="batch-course-until" type="time" required
-            /></label>
+            /></label
+            ><label class="field span2"
+              >课程持续周数<input
+                id="batch-course-weeks"
+                type="number"
+                min="1"
+                max="60"
+                step="1"
+                required /></label
+            >
           </div>
+          <p class="week-hint">
+            从这批课程首次上课所在周开始计算；增加周数会自动补齐课次，减少周数会移除超出范围的课次。
+          </p>
           <div id="course-batch-message" class="message" role="alert"></div>
           <div class="dialog-actions">
             <button id="course-batch-delete" class="btn danger" type="button">
@@ -3243,7 +3255,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           return !value || value === "默认" ? "未分类" : value;
         }
         function courseMeta(task) {
-          const meta = { teacher: "", location: "", extra: "" };
+          const meta = { teacher: "", location: "", batchId: "", extra: "" };
           if (task?.category !== "课程") {
             meta.extra = String(task?.notes || "").trim();
             return meta;
@@ -3253,7 +3265,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             .split(/\r?\n/)
             .forEach((line) => {
               const match = line.match(
-                /^\s*(任课老师|教室)\s*[:：]\s*(.*?)\s*$/,
+                /^\s*(任课老师|教室|课程批次)\s*[:：]\s*(.*?)\s*$/,
               );
               if (!match) {
                 if (line.trim()) extra.push(line.trim());
@@ -3262,15 +3274,23 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
               const value = match[2].trim();
               if (match[1] === "任课老师") {
                 if (!meta.teacher) meta.teacher = value;
-              } else if (!meta.location) meta.location = value;
+              } else if (match[1] === "教室") {
+                if (!meta.location) meta.location = value;
+              } else if (!meta.batchId) meta.batchId = value;
             });
           meta.extra = extra.join("\n");
           return meta;
         }
-        function courseNotes(teacher = "", location = "", extra = "") {
+        function courseNotes(
+          teacher = "",
+          location = "",
+          extra = "",
+          batchId = "",
+        ) {
           return [
             teacher && "任课老师：" + teacher,
             location && "教室：" + location,
+            batchId && "课程批次：" + batchId,
             extra,
           ]
             .filter(Boolean)
@@ -3292,7 +3312,9 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                   task.due_time?.slice(0, 5) || "",
                   durationOf(task),
                 ]),
-                key = task.created_at
+                key = meta.batchId
+                  ? "batch:" + String(task.user_id || "") + ":" + meta.batchId
+                  : task.created_at
                   ? "created:" +
                     String(task.user_id || "") +
                     ":" +
@@ -3339,6 +3361,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                 title: sample.task.title || "",
                 teacher: sample.meta.teacher,
                 location: sample.meta.location,
+                batchId: sample.meta.batchId,
                 extra: sample.meta.extra,
                 dueTime: sample.task.due_time?.slice(0, 5) || "",
                 durationMinutes: durationOf(sample.task),
@@ -3346,6 +3369,36 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                 last: dates.at(-1) || "",
                 days,
                 count: rows.length,
+                weekStart: ScheduleTimetable.monday(dates[0]),
+                weekSpan:
+                  Math.floor(
+                    (new Date(
+                      ScheduleTimetable.monday(dates.at(-1)) + "T12:00:00Z",
+                    ) -
+                      new Date(
+                        ScheduleTimetable.monday(dates[0]) + "T12:00:00Z",
+                      )) /
+                      (7 * 86400000),
+                  ) + 1,
+                frequencyStep: (() => {
+                  const weeks = [
+                    ...new Set(
+                      dates.map((value) => ScheduleTimetable.monday(value)),
+                    ),
+                  ];
+                  if (weeks.length < 2) return 1;
+                  return weeks.every(
+                    (value) =>
+                      Math.round(
+                        (new Date(value + "T12:00:00Z") -
+                          new Date(weeks[0] + "T12:00:00Z")) /
+                          (7 * 86400000),
+                      ) % 2 ===
+                      0,
+                  )
+                    ? 2
+                    : 1;
+                })(),
                 mixed: new Set(rows.map((x) => x.signature)).size > 1,
               });
             }
@@ -4760,6 +4813,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           const end = startMinutes(group.dueTime) + group.durationMinutes;
           $("batch-course-until").value =
             group.dueTime && end < 1440 ? ScheduleTimetable.time(end) : "09:00";
+          $("batch-course-weeks").value = group.weekSpan || 1;
           $("course-batch-summary").textContent =
             "将影响 " +
             group.count +
@@ -4791,6 +4845,14 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
           if (!ids.length || ids.some((id) => !ownIds.has(id)))
             throw Error("课程数据已变化，请关闭窗口并同步后重试。");
           return { account, ids };
+        }
+        function newCourseBatchId() {
+          return (
+            "batch-" +
+            Date.now().toString(36) +
+            "-" +
+            Math.random().toString(36).slice(2, 10)
+          );
         }
         async function batchCourseRequest(method, ids, body, account) {
           if (!["PATCH", "DELETE"].includes(method) || !account || !ids.length)
@@ -4859,7 +4921,8 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             teacher = $("batch-course-teacher").value.trim(),
             location = $("batch-course-location").value.trim(),
             from = $("batch-course-time").value,
-            until = $("batch-course-until").value;
+            until = $("batch-course-until").value,
+            weeks = Number($("batch-course-weeks").value);
           $("course-batch-message").textContent = "";
           try {
             const { account, ids } = managedCourseIds(),
@@ -4869,12 +4932,32 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             if (!title) throw Error("请填写课程名称。");
             if (duration < 15)
               throw Error("结束时间需比开始时间晚至少 15 分钟，且在同一天。");
+            if (!Number.isInteger(weeks) || weeks < 1 || weeks > 60)
+              throw Error("课程持续周数需填写 1 至 60 的整数。");
             setCourseBatchBusy(true);
             const selected = ids.map((id) =>
                 tasks.find((task) => String(task.id) === id),
               ),
+              batchId = managedCourse.batchId || newCourseBatchId(),
+              desired = ScheduleTimetable.occurrences({
+                start: managedCourse.weekStart,
+                end: addDays(managedCourse.weekStart, weeks * 7 - 1),
+                days: managedCourse.days,
+                from,
+                until,
+                frequency:
+                  managedCourse.frequencyStep === 2 ? "odd" : "all",
+              }),
+              desiredDates = new Set(desired.map((row) => row.due_date)),
+              kept = selected.filter((task) => desiredDates.has(task.due_date)),
+              removed = selected.filter(
+                (task) => !desiredDates.has(task.due_date),
+              ),
+              existingDates = new Set(kept.map((task) => task.due_date)),
+              added = desired.filter((row) => !existingDates.has(row.due_date)),
               byExtra = new Map();
-            selected.forEach((task) => {
+            let insertedCount = 0;
+            kept.forEach((task) => {
               const extra = courseMeta(task).extra;
               if (!byExtra.has(extra)) byExtra.set(extra, []);
               byExtra.get(extra).push(String(task.id));
@@ -4888,7 +4971,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                     groupIds,
                     {
                       title,
-                      notes: courseNotes(teacher, location, extra),
+                      notes: courseNotes(teacher, location, extra, batchId),
                       due_time: from,
                       duration_minutes: duration,
                     },
@@ -4899,9 +4982,60 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
                 err.completedIds = [...completed, ...(err.completedIds || [])];
                 throw err;
               }
+            if (removed.length) {
+              const removedIds = removed.map((task) => String(task.id));
+              await batchCourseRequest("DELETE", removedIds, undefined, account);
+              clearCourseLocalState(removedIds);
+            }
+            if (added.length) {
+              const duplicateDates = new Set(
+                  tasks
+                    .filter(
+                      (task) =>
+                        isOwn(task) &&
+                        task.category === "课程" &&
+                        !ids.includes(String(task.id)) &&
+                        task.title === title &&
+                        task.due_time?.slice(0, 5) === from &&
+                        Number(task.duration_minutes) === duration,
+                    )
+                    .map((task) => task.due_date),
+                ),
+                fresh = added.filter(
+                  (row) => !duplicateDates.has(row.due_date),
+                );
+              insertedCount = fresh.length;
+              if (fresh.length)
+                await raw("/rest/v1/schedules", {
+                  method: "POST",
+                  body: fresh.map((row) => ({
+                    ...row,
+                    user_id: account,
+                    title,
+                    notes: courseNotes(
+                      teacher,
+                      location,
+                      managedCourse.extra,
+                      batchId,
+                    ),
+                    category: "课程",
+                    priority: 0,
+                    completed: false,
+                  })),
+                  headers: { Prefer: "return=minimal" },
+                });
+            }
             $("course-manage-dialog").close();
             await loadTasks({ quiet: true });
-            toast("已批量修改 " + completed.length + " 次课程");
+            toast(
+              "已更新 " +
+                completed.length +
+                " 次，新增 " +
+                insertedCount +
+                " 次，移除 " +
+                removed.length +
+                " 次课程",
+            );
           } catch (err) {
             const completed = err.completedIds?.length || 0;
             if (completed) {
@@ -5381,7 +5515,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.14.2",
+        const APP_VERSION = "2026.09.14.3",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
