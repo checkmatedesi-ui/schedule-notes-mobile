@@ -1976,6 +1976,16 @@
           font-size: clamp(8px, 2.25vw, 10px);
           line-height: 1.08;
         }
+        #week-view.week-fit .week-block.has-course-details .week-time {
+          display: block;
+          margin: 0;
+          white-space: nowrap;
+          overflow: visible;
+          text-overflow: clip;
+          font-size: clamp(6.5px, 1.7vw, 8px);
+          line-height: 1.05;
+          letter-spacing: -0.04em;
+        }
       }
       .app-version-row {
         display: flex;
@@ -5371,7 +5381,7 @@ grant select, insert, update, delete on public.schedules to authenticated;`;
             tip?.classList.add("hidden");
             localStorage.setItem("schedule-ios-tip-dismissed", "1");
           });
-        const APP_VERSION = "2026.09.14.1",
+        const APP_VERSION = "2026.09.14.2",
           byId = (id) => document.getElementById(id);
         let registration = null,
           checking = false,
